@@ -1,0 +1,50 @@
+# server_rate 0.1 minist (5 clients)
+CUDA_VISIBLE_DEVICES=0 python pretrain.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 5
+CUDA_VISIBLE_DEVICES=0 python flt_backdoor.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 5
+python fedremoval.py --warmup_lr 0.001 --lr 0.0001 --weight_decay 5 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 3200 --train_epochs 400 --removal_lr 0.01 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 5
+
+# # server_rate 0.1 minist (10 clients)
+# CUDA_VISIBLE_DEVICES=0 python pretrain.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 5 --server_rate 0.1 --epochs 200 --dataset mnist
+# CUDA_VISIBLE_DEVICES=0 python pretrain.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 10
+# CUDA_VISIBLE_DEVICES=0 python pretrain_mse.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 10
+# CUDA_VISIBLE_DEVICES=3 python train.py --warmup_lr 0.001 --lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --num_users 10
+# CUDA_VISIBLE_DEVICES=1 python retrain.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --num_epochs 800 --dataset mnist --mode mixlinear
+# CUDA_VISIBLE_DEVICES=2 python removal.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --removal_lr 0.0001 --eval_from 50 --remove_idx 0 --num_epochs 100 --train_epochs 800 --mu 0.01 --dataset mnist --mode mixlinear
+# python flt_backdoor.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 10
+# python backdoor_retrain.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 10 
+# python backdoor_removal.py --warmup_lr 0.001 --lr 0.0001 --weight_decay 0.005 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 6400 --train_epochs 400 --removal_lr 0.01 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 10
+# python test.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --removal_lr 0.0001 --dataset mnist --mode mixlinear
+# python mia/mia_entropy.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --removal_lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --mode mixlinear --dataset mnist
+# python mia/mia3.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 100 --num_epochs 100 --mode mixlinear --dataset mnist
+# python mia/mia_loss.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --removal_lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --mode mixlinear --dataset mnist
+# python mia/lira.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --removal_lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --mode mixlinear --dataset mnist
+
+# server_rate 0.1 minist (15 clients)
+# python pretrain.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 15
+# CUDA_VISIBLE_DEVICES=0 python pretrain_mse.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 15
+# CUDA_VISIBLE_DEVICES=3 python train.py --warmup_lr 0.001 --lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --num_users 15 # scheduled
+# CUDA_VISIBLE_DEVICES=1 python retrain.py --warmup_lr 0.001 --lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --num_epochs 400 --dataset mnist --mode mixlinear --num_users 15
+# CUDA_VISIBLE_DEVICES=2 python removal.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --weight_decay 1 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --removal_lr 0.001 --eval_from 50 --remove_idx 0 --num_epochs 3200 --train_epochs 400 --mu 0.01 --dataset mnist --mode mixlinear --num_users 15
+# python flt_backdoor.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 15
+# python backdoor_retrain.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 15
+# python backdoor_removal.py --warmup_lr 0.001 --lr 0.0001 --weight_decay 0.005 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 6400 --train_epochs 400 --removal_lr 0.01 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 15
+# python test.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --removal_lr 0.0001 --dataset mnist --mode mixlinear
+# python mia/mia_entropy.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 400 --num_epochs 3200 --mode mixlinear --dataset mnist --num_users 15
+# python mia/mia_loss.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 400 --num_epochs 3200 --mode mixlinear --dataset mnist --num_users 15
+# python mia/mia_grad.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 400 --num_epochs 3200 --mode mixlinear --dataset mnist --num_users 15
+# python mia/lira.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --removal_lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --mode mixlinear --dataset mnist
+
+# server_rate 0.1 minist (20 clients)
+# python pretrain.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 20
+# CUDA_VISIBLE_DEVICES=0 python pretrain_mse.py --batch_size 32 --lr 0.001 --data_dir ./data --save_freq 10 --max_server_rate 0.1 --server_rate 0.1 --dataset mnist --num_users 20
+# CUDA_VISIBLE_DEVICES=3 python train.py --warmup_lr 0.001 --lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --num_users 20 # scheduled
+# CUDA_VISIBLE_DEVICES=1 python retrain.py --warmup_lr 0.001 --lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --num_epochs 400 --dataset mnist --mode mixlinear --num_users 20
+# CUDA_VISIBLE_DEVICES=2 python removal.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --weight_decay 1 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --removal_lr 0.001 --eval_from 50 --remove_idx 0 --num_epochs 3200 --train_epochs 400 --mu 0.01 --dataset mnist --mode mixlinear --num_users 20
+# python flt_backdoor.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 20
+# python backdoor_retrain.py --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --eval_from 50 --num_epochs 400 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 20
+# python backdoor_removal.py --warmup_lr 0.001 --lr 0.0001 --weight_decay 0.005 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --num_epochs 6400 --train_epochs 400 --removal_lr 0.01 --dataset mnist --mode mixlinear --remove_idx 0 --num_users 20
+# python test.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --removal_lr 0.0001 --dataset mnist --mode mixlinear
+# python mia/mia_entropy.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 400 --num_epochs 3200 --mode mixlinear --dataset mnist --num_users 20
+# python mia/mia_loss.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 400 --num_epochs 3200 --mode mixlinear --dataset mnist --num_users 20
+# python mia/mia_grad.py --batch_size 32 --warmup_lr 0.001 --lr 0.001 --removal_lr 0.001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 400 --num_epochs 3200 --mode mixlinear --dataset mnist --num_users 20
+# python mia/lira.py --batch_size 32 --warmup_lr 0.001 --lr 0.0001 --removal_lr 0.0001 --data_dir ./data --server_rate 0.1 --max_server_rate 0.1 --eval_from 50 --remove_idx 0 --train_epochs 800 --num_epochs 100 --mode mixlinear --dataset mnist
