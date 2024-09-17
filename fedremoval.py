@@ -17,7 +17,8 @@ import torchvision.transforms as transforms
 
 from model.mnist import *
 from model.cifar import *
-from model.VGG import *
+from model.clip import CLIPLP
+from model.blip2 import BLIP2LP
 
 
 class FedRemovalTrainer:
@@ -91,6 +92,7 @@ class FedRemovalTrainer:
             self.model_forget = BLIP2LP(num_classes=10).to(self.device)
         else:
             raise NotImplementedError()
+
         checkpoint = torch.load(self.pretrain_filename)
         self.pretrained_model.load_state_dict(checkpoint)
         self.pretrained_model.jvp(self.pretrained_model)
@@ -159,26 +161,25 @@ class FedRemovalTrainer:
         self.gdr = {}
         total_samples = 0
         for i in range(len(self.train_loader_users)):
-            if i not in args.remove_idx:
-                self.model_forget.eval()
+            if i not in self.args.remove_idx:
+                self.server_model.eval()
                 for idx, (img, labels) in enumerate(self.train_loader_users[i]):
                     img = img.to(self.device)
                     labels = labels.to(self.device)
                     total_samples += labels.size(0)
-                    labels_onehot = F.one_hot(labels, self.model_forget.num_classes).float()
-                    _, jvp = self.model_forget(img)
+                    labels_onehot = F.one_hot(labels, self.server_model.num_classes).float()
+                    _, jvp = self.server_model(img)
                     output, jvp2 = self.pretrained_model(img)
                     loss = self.loss_mse_func_sum(output + (jvp - jvp2), labels_onehot)
                     loss /= 2
                     loss.backward()
-                    for name, param in self.model_forget.named_parameters():
+                    for name, param in self.server_model.named_parameters():
                         if param.requires_grad:
-                            # self.logger.info("{} requires gradient".format(name))
                             if name in self.gdr:
                                 self.gdr[name] += param.grad.clone()  # Accumulate raw gradients
                             else:
                                 self.gdr[name] = param.grad.clone()
-                    self.model_forget.zero_grad()
+                    self.server_model.zero_grad()
                     self.pretrained_model.zero_grad()
         for key, value in self.gdr.items():
             self.gdr[key] = value / total_samples
@@ -260,6 +261,7 @@ class FedRemovalTrainer:
         self.logger.info("============ End of FedRemoval ============")
         self.logger.info('============ Final Removal Performance ============')
         self.eval(self.best_model)
+        self.save_model()
     
     def train_epoch(self):
         self.model_forget.train()
@@ -369,7 +371,7 @@ if __name__ == "__main__":
         help="percentage of dataset for dataset split for server and client",
     )
 
-    parser.add_argument("--data_dir", type=str, default="../../data")
+    parser.add_argument("--data_dir", type=str, default="./data")
     parser.add_argument(
         "--iid", type=str, default="iid", help="iid, noniid, noniid2cls"
     )

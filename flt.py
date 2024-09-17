@@ -15,7 +15,8 @@ from utils.data_util import DataLoaderFactory
 import torch.nn.functional as F
 from model.mnist import *
 from model.cifar import *
-from model.VGG import *
+from model.clip import CLIPLP
+from model.blip2 import BLIP2LP
 
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -42,27 +43,18 @@ class Trainer:
         elif args.dataset == "cifar10":
             self.server_model = NTKNetSmall(num_classes=10).to(self.device)
             self.pretrained_model = NTKNetSmall(num_classes=10).to(self.device)
-        elif args.dataset == "bloodmnist":
-            self.server_model = NTKNetSmall(num_classes=8).to(self.device)
-            self.pretrained_model = NTKNetSmall(num_classes=8).to(self.device)
         elif args.dataset == "fashionmnist":
             self.server_model = NTKMnist(num_classes=10).to(self.device)
             self.pretrained_model = NTKMnist(num_classes=10).to(self.device)
-        elif args.dataset.lower() == "tinyimgnet":
-            self.server_model = VGG16Net(num_classes=200).to(self.device)
-            self.pretrained_model = VGG16Net(num_classes=200).to(self.device)
-        elif args.dataset == "10clsimgnet":
-            self.server_model = VGG16Net(num_classes=20).to(self.device)
-            self.pretrained_model = VGG16Net(num_classes=20).to(self.device)
-        elif args.dataset == "10clsimgnet_lp":
-            self.server_model = VGG16NetLP(num_classes=20).to(self.device)
-            self.pretrained_model = VGG16NetLP(num_classes=20).to(self.device)
-        elif args.dataset == "domainnet":
-            self.server_model = VGG16Net(num_classes=10).to(self.device)
-            self.pretrained_model = VGG16Net(num_classes=10).to(self.device)
-        elif args.dataset == "flowers":
-            self.server_model = NTKNetSmall(num_classes=10).to(self.device)
-            self.pretrained_model = NTKNetSmall(num_classes=10).to(self.device)
+        elif args.dataset == "flowers_blip2":
+            self.server_model = BLIP2LP(num_classes=10).to(self.device)
+            self.pretrained_model = BLIP2LP(num_classes=10).to(self.device)
+        elif args.dataset == "domainnet_clipvit":
+            self.server_model = CLIPLP(num_classes=10, backbone="ViT-B/32").to(self.device)
+            self.pretrained_model = CLIPLP(num_classes=10, backbone="ViT-B/32").to(self.device)
+        elif args.dataset == "20clsimgnet_clipvit":
+            self.server_model = CLIPLP(num_classes=20, backbone="ViT-B/32").to(self.device).float()
+            self.pretrained_model = CLIPLP(num_classes=20, backbone="ViT-B/32").to(self.device).float()
         else:
             raise NotImplementedError()
         
@@ -107,7 +99,7 @@ class Trainer:
     def train(self):
         self.logger.info("============ Start Federated Linear Training ============")
         
-        for a_iter in range(self.args.num_epochs):
+        for a_iter in range(self.args.train_epochs):
             self.logger.info("============ Train epoch {} ============".format(a_iter))
             optimizers, schedulers = self.init_optim()
             w_locals = []
@@ -154,6 +146,8 @@ class Trainer:
         save_model["server"] = self.server_model
         for i, model in enumerate(self.models):
             save_model[i] = model
+        if not os.path.exists(args.save_path):
+            os.makedirs(args.save_path)
         torch.save(save_model, save_path)
 
     def eval(self):
@@ -181,6 +175,8 @@ class Trainer:
         """
         w_avg= copy.deepcopy(w[0])
         for key in w_avg.keys():
+            if "num_batches_tracked" in key or "position_ids" in key:
+                continue
             temp = torch.zeros_like(w_avg[key])
             for client_idx in range(len(client_weights)):
                 temp += client_weights[client_idx] * w[client_idx][key]
@@ -201,6 +197,7 @@ class Trainer:
                     else:
                         dummy_weights.append(1)
                 client_weights = [dummy_weights[i] / sum(dummy_weights) for i in range(args.num_users)]
+
             w_glob = self.fedavg(w_locals, client_weights)
             # update server and client models after aggregation
             for model in self.models:
@@ -301,12 +298,12 @@ class FLLauncher:
     def __init__(self, args):
         self.args = args
         self.file_manager = FileManager(self.args)
-        self.args.filename = self.file_namager.train_filename()
+        self.args.filename = self.file_manager.train_filename()
 
         log_path = os.path.join("./logs/backdoor_train", args.dataset)
         self.logger = self.setup_logger(log_path, self.args.filename)
         self.log()
-        self.args.save_path = 
+        self.args.save_path = os.path.join(args.save_path, args.dataset)
         self.trainer = Trainer(args, self.logger, self.file_manager)
 
 
@@ -382,7 +379,7 @@ if __name__ == "__main__":
         help="starting epoch for federated learning",
     )
     parser.add_argument(
-        "--num_epochs",
+        "--train_epochs",
         type=int,
         default=50,
         help="number of epochs for federated learning",

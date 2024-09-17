@@ -4,6 +4,22 @@ class FileManager:
     def __init__(self, args):
         self.args = args
     
+    def pretrained_filename_base(self):
+        return (
+            "bs_"
+            + str(self.args.warmup_batch_size)
+            + "_lr_"
+            + str(self.args.warmup_lr)
+            + "_seed_"
+            + str(self.args.seed)
+            + "_rate_"
+            + str(self.args.server_rate)
+            + "_maxrate_"
+            + str(self.args.max_server_rate)
+            + "_clients"
+            + str(self.args.num_users)
+        )
+
     def pretrained_filename(self):
         return (
             "bs_"

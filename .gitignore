@@ -163,3 +163,4 @@ cython_debug/
 checkpoint/
 data/
 logs/
+scripts/

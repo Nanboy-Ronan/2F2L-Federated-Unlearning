@@ -10,7 +10,8 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils import data_util
 from model.mnist import NTKMnist
 from model.cifar import NTKNetSmall
-from model.VGG import VGG16Net, VGG16NetLP
+from model.clip import CLIPLP
+from model.blip2 import BLIP2LP
 from utils.constant import FileManager
 from utils.utils import set_deterministic
 from utils.model_util import load_pretrained_model
@@ -28,6 +29,12 @@ class Trainer:
             return NTKMnist(num_classes=10).to(self.device)
         elif self.args.dataset == "cifar10":
             return NTKNetSmall(num_classes=10).to(self.device)
+        elif self.args.dataset == "20clsimgnet_clipvit":
+            return CLIPLP(num_classes=20, backbone="ViT-B/32").to(self.device)
+        elif self.args.dataset == "domainnet_clipvit":
+            return CLIPLP(num_classes=10, backbone="ViT-B/32").to(self.device)
+        elif args.dataset == "flowers_blip2":
+            return BLIP2LP(num_classes=10).to(self.device)
         else:
             raise NotImplementedError(f"Model for dataset {self.args.dataset} not implemented.")
 
@@ -75,10 +82,10 @@ class Pretrainer:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.data_loader_factory = DataLoaderFactory(args)
         self.model = Trainer(args, self.device)
-        self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.model.model.parameters()), lr=args.lr)
+        self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.model.model.parameters()), lr=args.warmup_lr)
         self.scheduler = CosineAnnealingLR(self.optimizer, T_max=self.args.Tmax)
         self.file_manager = FileManager(self.args)
-        self.filename = self.file_manager.pretrained_filename()
+        self.filename = self.file_manager.pretrained_filename_base()
 
         log_path = os.path.join("./logs/warmup_ce", args.dataset)
         self.logger = self.setup_logger(log_path, self.filename)
@@ -156,8 +163,8 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", type=str, default="mnist", help="which dataset")
     parser.add_argument("--imgnet_path", type=str, default="", help="path to imagenet pretrained model")
     parser.add_argument("--num_users", type=int, default=10, help="number of clients")
-    parser.add_argument("--lr", type=float, default=1e-2, help="learning rate")
-    parser.add_argument("--batch_size", type=int, default=32, help="batch size")
+    parser.add_argument("--warmup_lr", type=float, default=1e-2, help="learning rate")
+    parser.add_argument("--warmup_batch_size", type=int, default=32, help="batch size")
     parser.add_argument("--Tmax", type=int, default=10, help="The hyper parameter for annealing learning rate scheduler")
     parser.add_argument("--epochs", type=int, default=100, help="number of epochs for warmup")
     parser.add_argument("--save_path", type=str, default="./checkpoint/warmup_ce", help="path to save the checkpoint")

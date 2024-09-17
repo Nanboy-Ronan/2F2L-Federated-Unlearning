@@ -31,20 +31,79 @@ class DataLoaderFactory:
                 transforms.ToTensor(),
                 transforms.Normalize((0.2859), (0.3530))
             ])
+        elif "domainnet" in dataset.lower():
+            return transforms.Compose(
+                [
+                    transforms.Resize([224, 224]),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
+                ])
+        elif "20clsimgnet" in dataset.lower():
+            return transforms.Compose(
+                [   
+                    transforms.Resize([224, 224]),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.4802, 0.4481, 0.3975], [0.2302, 0.2265, 0.2262]),
+                ])
+        elif "flowers" in dataset.lower():
+            return transforms.Compose(
+                        [
+                            transforms.ToTensor(),
+                            transforms.Resize((224, 224)),
+                        ])
         else:
             raise NotImplementedError(f"Dataset {dataset} not supported.")
 
     def prepare_data(self):
         # Data preparation logic based on dataset
         transform = self.get_transform(self.args.dataset.lower())
-        dataloader_kwargs = {"batch_size": self.args.batch_size, "drop_last": True, "pin_memory": True}
+        dataloader_kwargs = {"batch_size": self.args.warmup_batch_size, "drop_last": True, "pin_memory": True}
 
         if self.args.dataset.lower() == "mnist":
             self.dataset_train = torchvision.datasets.MNIST(self.args.data_dir, train=True, transform=transform, download=True)
             dataset_test = torchvision.datasets.MNIST(self.args.data_dir, train=False, transform=transform, download=True)
+        elif self.args.dataset.lower() == "fashionmnist":
+            self.dataset_train = torchvision.datasets.FashionMNIST(
+                args.data_dir, train=True, transform=transform, download=True
+            )
+            dataset_test = torchvision.datasets.FashionMNIST(
+                args.data_dir, train=False, transform=transform, download=True
+            )
         elif self.args.dataset.lower() == "cifar10":
             self.dataset_train = torchvision.datasets.CIFAR10(self.args.data_dir, train=True, transform=transform, download=True)
             dataset_test = torchvision.datasets.CIFAR10(self.args.data_dir, train=False, transform=transform, download=True)
+        elif "20clsimgnet" in self.args.dataset.lower():
+            ckpt = torch.load("./data/20clsimgnet.pth")
+            dataset = torchpthDataset(ckpt["data"], ckpt["targets"], transform=transform)
+
+            indices = torch.randperm(len(dataset)).tolist()
+            train_size = int(0.8 * len(dataset))
+            train_indices, test_indices = indices[:train_size], indices[train_size:]
+
+            self.dataset_train = DatasetSplit(dataset, train_indices)
+            dataset_test = DatasetSplit(dataset, test_indices)
+        elif "domainnet" in self.args.dataset.lower():
+            ckpt = torch.load("./data/Domainnet.pth")
+            dataset = torchpthDataset(ckpt["data"], ckpt["targets"], transform=transform)
+
+            indices = torch.randperm(len(dataset)).tolist()
+            train_size = int(0.8 * len(dataset))
+            train_indices, test_indices = indices[:train_size], indices[train_size:]
+
+            self.dataset_train = DatasetSplit(dataset, train_indices)
+            dataset_test = DatasetSplit(dataset, test_indices)
+        elif "flowers" in self.args.dataset.lower():
+            dataset_flower = torchvision.datasets.ImageFolder(
+                os.path.join(self.args.data_dir, "flowers"), transform=transform
+            )
+
+            indices = torch.randperm(len(dataset_flower)).tolist()
+            train_size = int(0.8 * len(dataset_flower))
+            train_indices, test_indices = indices[:train_size], indices[train_size:]
+            train_indices, test_indices = indices[:train_size], indices[train_size:]
+
+            self.dataset_train = DatasetSplit(dataset_flower, train_indices)
+            dataset_test = DatasetSplit(dataset_flower, test_indices)
         else:
             raise NotImplementedError(f"Dataset {self.args.dataset} not supported.")
 
@@ -108,27 +167,21 @@ class DataLoaderFactory:
                         shuffle=True,
                         **dataloader_kwargs
                     )
-                elif self.args.dataset == "domainnet":
+                elif "domainnet" in self.args.dataset:
                     train_loader_users[idx] = torch.utils.data.DataLoader(
-                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=64),
+                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=128),
                         shuffle=True,
                         **dataloader_kwargs
                     )
-                elif self.args.dataset == "10clsimgnet" or self.args.dataset == "10clsimgnet_lp":
+                elif "20clsimgnet" in self.args.dataset:
                     train_loader_users[idx] = torch.utils.data.DataLoader(
-                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=32),
+                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=128),
                         shuffle=True,
                         **dataloader_kwargs
                     )
-                elif self.args.dataset == "tinyimgnet":
+                elif "flowers" in self.args.dataset:
                     train_loader_users[idx] = torch.utils.data.DataLoader(
-                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=64),
-                        shuffle=True,
-                        **dataloader_kwargs
-                    )
-                elif self.args.dataset == "flowers":
-                    train_loader_users[idx] = torch.utils.data.DataLoader(
-                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=10),
+                        dataset=Backdoor_Dataset(self.dataset_train, dict_users[idx], trigger="hidden", patch_size=128),
                         shuffle=True,
                         **dataloader_kwargs
                     )
