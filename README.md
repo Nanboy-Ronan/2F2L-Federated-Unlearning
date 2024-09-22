@@ -45,6 +45,3 @@ We provide two colab runnable examples.
 If you find our project to be useful, please cite our paper.
 ```
 ```
-
-<!-- ## Contact -->
-<!-- If you have any question, feel free to submit issues using this [repo](https://github.com/Nanboy-Ronan/Backdoor_Multimodal_Foundation_Model) (please submit follow the link's repo as that one is monitored by me) or [email](mailto:ruinanjin@alumni.ubc.ca) me. We are happy to help you. -->
