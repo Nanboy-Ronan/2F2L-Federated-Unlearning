@@ -162,5 +162,6 @@ cython_debug/
 #.idea/
 checkpoint/
 data/
+pretrained_models/
 logs/
 scripts/
