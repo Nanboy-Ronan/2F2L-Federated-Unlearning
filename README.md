@@ -35,7 +35,8 @@ python fedremoval.py --lr <fl_lr> --weight_decay <weight_decay> --num_epochs <fe
 Two example are provided in the notebooks.
 
 ## Examples
-We provide two colab runnable examples.
+We provide two colab runnable examples. You can open these two notebooks in colab, where it self-contains environment setup, dataset downloads, federated learning and 2F2L.
+
 |  FL Setting   | Link  |
 |  ----  | ----  |
 | FL from Scratch (MNIST) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/2F2L-Federated-Unlearning/blob/main/notebooks/mnist.ipynb) |
