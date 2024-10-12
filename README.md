@@ -11,7 +11,7 @@ TODO
 We release our pretrained models [here](https://object-arbutus.cloud.computecanada.ca:443/rjin/2F2L/checkpoint.zip).
 
 ### Environment
-This project is based on PyTorch 2.1.2. You can simply set up the environment of MedCLIP. We also provide `environment.yml`. You can also refer to the colab notebook for setting up the environmenr using pip.
+This project is based on PyTorch 2.3. We also provide `environment.yml`. You can also refer to the colab notebook for setting up the environmenr using pip.
 
 ### Data
 All of our data are downloaded from official mnist, cifar10, flowers, domainnet and imagenet websites. For your convenience, we provide our pre-processed data [here](https://object-arbutus.cloud.computecanada.ca:443/rjin/2F2L/data.zip). Please note that we fully acknowledge the copyrights of the original provider of the data. We only temperarily provide the download link of data here for convenience of the users to reproduce our paper.
